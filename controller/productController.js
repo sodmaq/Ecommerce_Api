@@ -1,6 +1,8 @@
 const Product = require('../model/productModel');
 const asyncHandler = require('express-async-handler');
 const slugify = require('slugify');
+const APIFeatures = require('../utils/apiFeatures');
+
 
 const createProduct = asyncHandler(async (req, res) => {
   try {
@@ -50,7 +52,12 @@ const getAProduct = asyncHandler(async (req, res) => {
 
 const getAllProduct = asyncHandler(async (req, res) => {
   try {
-    const allProduct = await Product.find();
+    const features = new APIFeatures(Product.find(), req.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+    const allProduct = await features.query;
     res.json({
       status: 'success',
       allProducts: allProduct,

@@ -24,9 +24,8 @@ const authMiddleware = asyncHandler(async (req, res, next) => {
 const isAdmin = asyncHandler(async (req, res, next) => {
   try {
     
-    const userId = req.params.id;
+    const userId = req.user._id;
     const adminUser = await User.findById(userId);
-
     if (!adminUser || adminUser.role !== 'admin') {
       return res.status(403).json({
         status: 'error',

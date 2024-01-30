@@ -174,7 +174,7 @@ const deleteAUser = asyncHandler(async (req, res) => {
 
 const blockUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  validateMongoDbId(id);
+  // validateMongoDbId(id);
   try {
     const blockuser = await User.findByIdAndUpdate(
       id,
