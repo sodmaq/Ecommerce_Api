@@ -12,9 +12,11 @@ const {
   unBlockUser,
   handleRefreshToken,
   logout,
+  updatePassword,
 } = require('../controller/userController');
 
 router.post('/register', createUser);
+router.put('/updatePassword', authMiddleware, updatePassword);
 router.post('/login', loginUser);
 router.get('/all-users', getAllUser);
 router.get('/refresh', handleRefreshToken);
