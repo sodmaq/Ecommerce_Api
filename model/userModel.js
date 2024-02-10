@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 
 // Declare the Schema of the Mongo model
 var userSchema = new mongoose.Schema(
@@ -45,10 +46,9 @@ var userSchema = new mongoose.Schema(
     refreshToken: {
       type: String,
     },
-  passwordChangedAt: Date,
-  passwordResetToken: String,
-  passwordResetExpires: Date,
-
+    passwordChangedAt: Date,
+    passwordResetToken: String,
+    passwordResetExpires: Date,
   },
 
   {
@@ -58,7 +58,7 @@ var userSchema = new mongoose.Schema(
 
 //hash password
 userSchema.pre('save', async function (next) {
-  if(!this.isModified('password')){
+  if (!this.isModified('password')) {
     next();
   }
   const salt = await bcrypt.genSalt(10);
@@ -78,7 +78,6 @@ userSchema.methods.createPasswordResetToken = async function () {
     .createHash('sha256')
     .update(resetToken)
     .digest('hex');
-  // console.log({resetToken},this.passwordResetToken)
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
   return resetToken;
 };
