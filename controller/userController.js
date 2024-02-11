@@ -236,7 +236,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
     // Construct the reset URL
     const resetURL = `${req.protocol}://${req.get(
       'host'
-    )}/api/users/resetPassword/${token}`;
+    )}/api/user/resetPassword/${token}`;
 
     // Send the reset password email with the reset URL
     await sendEmail({
@@ -253,11 +253,11 @@ const forgotPassword = asyncHandler(async (req, res) => {
 });
 
 const resetPassword = asyncHandler(async (req, res) => {
-  const { passowrd } = req.body;
+  const { password } = req.body;
   const { token } = req.params;
   const hashedToken = crypto
     .createHash('sha256')
-    .update(resetToken)
+    .update(token)
     .digest('hex');
   const user = await User.findOne({
     passwordResetToken: hashedToken,
@@ -284,4 +284,5 @@ module.exports = {
   logout,
   updatePassword,
   forgotPassword,
+  resetPassword,
 };
