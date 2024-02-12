@@ -8,7 +8,7 @@ const {
   deleteCategory,
   getCategory,
   getAllCategory,
-} = require('../controller/prodCategoryController');
+} = require('../controller/blogCatController');
 
 router.post('/addCategory', authMiddleware, isAdmin, createCategory);
 router.put('/updateCategory/:id', authMiddleware, isAdmin, updateCategory);
