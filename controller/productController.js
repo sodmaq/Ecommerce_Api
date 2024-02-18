@@ -147,7 +147,8 @@ const rating = asyncHandler(async (req, res) => {
     // Calculate average rating
     const totalRatings = product.ratings.length;
     const ratingSum = product.ratings.reduce((sum, item) => sum + item.star, 0);
-    const averageRating = totalRatings > 0 ? Math.round(ratingSum / totalRatings) : 0;
+    const averageRating =
+      totalRatings > 0 ? Math.round(ratingSum / totalRatings) : 0;
 
     // Update totalrating field in the product document
     const finalProduct = await Product.findByIdAndUpdate(

@@ -7,7 +7,7 @@ const {
   updateProduct,
   deleteProduct,
   addToWishlist,
-  rating
+  rating,
 } = require('../controller/productController');
 const { authMiddleware, isAdmin } = require('../middlewares/authMiddleware');
 

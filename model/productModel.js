@@ -40,9 +40,7 @@ const productSchema = new mongoose.Schema(
       default: 0,
       select: false,
     },
-    images: {
-      type: Array,
-    },
+    images: [],
     colour: {
       type: String,
       required: true,

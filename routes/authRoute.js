@@ -4,6 +4,7 @@ const router = express.Router();
 const {
   createUser,
   loginUser,
+  loginAdmin,
   getAllUser,
   getAUser,
   deleteAUser,
@@ -15,6 +16,7 @@ const {
   updatePassword,
   forgotPassword,
   resetPassword,
+  getWishlist,
 } = require('../controller/userController');
 
 router.post('/register', createUser);
@@ -22,7 +24,9 @@ router.put('/updatePassword', authMiddleware, updatePassword);
 router.post('/forgotPassword', forgotPassword);
 router.put('/resetPassword/:token', resetPassword);
 router.post('/login', loginUser);
+router.post('/admin-login', loginAdmin);
 router.get('/all-users', getAllUser);
+router.get('/wishList', authMiddleware, getWishlist);
 router.get('/refresh', handleRefreshToken);
 router.get('/logout', logout);
 router.get('/:id', authMiddleware, isAdmin, getAUser);
