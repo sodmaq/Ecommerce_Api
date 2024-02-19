@@ -1,4 +1,6 @@
 const User = require('../model/userModel');
+const Cart = require('../model/cartModel');
+const Product = require('../model/productModel');
 const asyncHandler = require('express-async-handler');
 const { generateToken } = require('../config/jwtToken');
 const { generateRefreshToken } = require('../config/refreshToken');
@@ -55,7 +57,7 @@ const loginAdmin = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   // check if user exists or not
   const findAdmin = await User.findOne({ email });
-  if (findAdmin.role !== "admin") throw new Error("Not Authorised");
+  if (findAdmin.role !== 'admin') throw new Error('Not Authorised');
   if (findAdmin && (await findAdmin.isPasswordMatched(password))) {
     const refreshToken = await generateRefreshToken(findAdmin?._id);
     const updateuser = await User.findByIdAndUpdate(
@@ -65,7 +67,7 @@ const loginAdmin = asyncHandler(async (req, res) => {
       },
       { new: true }
     );
-    res.cookie("refreshToken", refreshToken, {
+    res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       maxAge: 72 * 60 * 60 * 1000,
     });
@@ -78,7 +80,7 @@ const loginAdmin = asyncHandler(async (req, res) => {
       token: generateToken(findAdmin?._id),
     });
   } else {
-    throw new Error("Invalid Credentials");
+    throw new Error('Invalid Credentials');
   }
 });
 
@@ -147,6 +149,35 @@ const updateUser = asyncHandler(async (req, res) => {
     });
   } catch (error) {
     throw new Error(error);
+  }
+});
+// save user Address
+
+const saveAddress = asyncHandler(async (req, res) => {
+  const userId = req.user;
+
+  validateMongoDbId(userId);
+
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        address: req.body.address,
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(updatedUser);
+  } catch (error) {
+    // Handle any errors gracefully
+    console.error('Error updating user address:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
@@ -288,10 +319,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
 const resetPassword = asyncHandler(async (req, res) => {
   const { password } = req.body;
   const { token } = req.params;
-  const hashedToken = crypto
-    .createHash('sha256')
-    .update(token)
-    .digest('hex');
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
   const user = await User.findOne({
     passwordResetToken: hashedToken,
     passwordResetExpires: { $gt: Date.now() },
@@ -307,8 +335,51 @@ const resetPassword = asyncHandler(async (req, res) => {
 const getWishlist = asyncHandler(async (req, res) => {
   const { _id } = req.user;
   try {
-    const findUser = await User.findById(_id).populate("wishList");
+    const findUser = await User.findById(_id).populate('wishList');
     res.json(findUser);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+const userCart = asyncHandler(async (req, res) => {
+  const { cart } = req.body;
+  const { _id } = req.user;
+  validateMongoDbId(_id);
+  try {
+    let products = [];
+    const user = await User.findById(_id);
+    // check if user already have product in cart
+    const alreadyExistCart = await Cart.findOne({ orderby: user._id });
+    if (alreadyExistCart) {
+      await Cart.deleteOne({ _id: alreadyExistCart._id });
+    }
+
+    for (let i = 0; i < cart.length; i++) {
+      let object = {};
+      object.product = cart[i].id; // Changed from cart[i]._id to cart[i].id
+      object.count = cart[i].count;
+      object.color = cart[i].color;
+      let getPrice = await Product.findById(cart[i].id).select('price').exec(); // Changed from cart[i]._id to cart[i].id
+      if (getPrice) {
+        object.price = getPrice.price;
+      } else {
+        // Handle the case where the product is not found
+        console.error(`Product with ID ${cart[i].id} not found`);
+        // You might want to set a default price or skip adding this product to the cart
+      }
+      products.push(object);
+    }
+    let cartTotal = 0;
+    for (let i = 0; i < products.length; i++) {
+      cartTotal = cartTotal + products[i].price * products[i].count;
+    }
+    let newCart = await new Cart({
+      products,
+      cartTotal,
+      orderby: user?._id,
+    }).save();
+    res.json(newCart);
   } catch (error) {
     throw new Error(error);
   }
@@ -320,6 +391,7 @@ module.exports = {
   loginAdmin,
   getAllUser,
   getAUser,
+  saveAddress,
   deleteAUser,
   updateUser,
   blockUser,
@@ -330,4 +402,5 @@ module.exports = {
   forgotPassword,
   resetPassword,
   getWishlist,
+  userCart,
 };

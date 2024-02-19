@@ -17,6 +17,8 @@ const {
   forgotPassword,
   resetPassword,
   getWishlist,
+  saveAddress,
+  userCart,
 } = require('../controller/userController');
 
 router.post('/register', createUser);
@@ -27,6 +29,8 @@ router.post('/login', loginUser);
 router.post('/admin-login', loginAdmin);
 router.get('/all-users', getAllUser);
 router.get('/wishList', authMiddleware, getWishlist);
+router.post('/cart', authMiddleware, userCart);
+router.put('/save-address', authMiddleware, saveAddress);
 router.get('/refresh', handleRefreshToken);
 router.get('/logout', logout);
 router.get('/:id', authMiddleware, isAdmin, getAUser);
