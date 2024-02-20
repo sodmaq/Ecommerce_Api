@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-// Declare the Schema of the Mongo model
 const productSchema = new mongoose.Schema(
   {
     title: {
@@ -40,7 +39,7 @@ const productSchema = new mongoose.Schema(
       default: 0,
       select: false,
     },
-    images: [],
+    images: [String], // Array of image URLs
     colour: {
       type: String,
       required: true,
@@ -53,12 +52,11 @@ const productSchema = new mongoose.Schema(
       },
     ],
     totalRating: {
-      type: Number, // Corrected data type to Number
+      type: Number,
       default: 0,
     },
   },
   { timestamps: true }
 );
 
-//Export the model
 module.exports = mongoose.model('Product', productSchema);
