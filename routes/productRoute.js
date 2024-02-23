@@ -9,8 +9,15 @@ const {
   addToWishlist,
   rating,
 } = require('../controller/productController');
+const {
+  initializePayment,
+  verifyPayment,
+} = require('../controller/paymentController'); // import the function
+
 const { authMiddleware, isAdmin } = require('../middlewares/authMiddleware');
 
+router.post('/payment/initialize', authMiddleware, initializePayment);
+router.post('/payment/verify', authMiddleware, verifyPayment);
 router.post('/', authMiddleware, isAdmin, createProduct);
 router.get('/getAProduct/:id', getAProduct);
 router.get('/', getAllProduct);

@@ -1,7 +1,7 @@
 const mongoose = require("mongoose"); 
 
 // Declare the Schema of the Mongo model
-var orderSchema = new mongoose.Schema(
+const orderSchema = new mongoose.Schema(
   {
     products: [
       {
@@ -29,6 +29,11 @@ var orderSchema = new mongoose.Schema(
     orderby: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+    },
+    paymentStatus: {
+      type: String,
+      default: "unpaid",
+      enum: ["unpaid", "paid", "failed"],
     },
   },
   {
