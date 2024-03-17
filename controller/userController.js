@@ -12,6 +12,9 @@ const APIFeatures = require('../utils/apiFeatures');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const uniqid = require('uniqid');
+const client = require('../redis');
+const util = require('util');
+client.get = util.promisify(client.get);
 
 const createUser = asyncHandler(async (req, res) => {
   const email = req.body.email;
@@ -190,12 +193,13 @@ const getAllUser = asyncHandler(async (req, res) => {
   try {
     const users = await User.find();
 
-    return res.status(200).json({
-      status: 'success',
-      allUsers: users
-    });
+    // Set data in Redis cache for 60 seconds
+    await client.setex('all-users', 60, JSON.stringify(users));
+
+    return res.json({ users });
   } catch (error) {
-    throw new Error(error);
+    console.error('Error fetching users:', error);
+    return res.status(500).send('Internal Server Error');
   }
 });
 

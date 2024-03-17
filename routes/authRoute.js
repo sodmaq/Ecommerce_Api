@@ -1,7 +1,9 @@
 const express = require('express');
 const { authMiddleware, isAdmin } = require('../middlewares/authMiddleware');
+const { cacheMiddleware } = require('../middlewares/cacheMiddleware');
 const router = express.Router();
 const client = require('../redis');
+const util = require('util');
 const {
   createUser,
   loginUser,
@@ -36,39 +38,7 @@ router.put('/resetPassword/:token', resetPassword);
 router.post('/login', loginUser);
 router.post('/admin-login', loginAdmin);
 // routes/userRoutes.js
-
-router.get('/all-users', async (req, res) => {
-  const cacheKey = 'all_users';
-
-  console.log('Before Redis get');
-
-  client.get(cacheKey, async (err, cachedData) => {
-    if (err) {
-      console.error('Redis error:', err);
-      return res.status(500).send('Internal Server Error');
-    }
-
-    console.log('After Redis get');
-
-    if (cachedData) {
-      return res.json({ users: JSON.parse(cachedData) });
-    }
-
-    try {
-      const users = await getAllUser();
-
-      console.log('Fetched users:', users);
-
-      client.setex(cacheKey, 60, JSON.stringify(users));
-
-      return res.json({ users });
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      return res.status(500).send('Internal Server Error');
-    }
-  });
-});
-
+router.get('/all-users', cacheMiddleware, getAllUser);
 router.get('/wishList', authMiddleware, getWishlist);
 router.post('/cart', authMiddleware, userCart);
 router.get('/cart', authMiddleware, getUserCart);
