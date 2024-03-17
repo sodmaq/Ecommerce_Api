@@ -35,19 +35,19 @@ const loginUser = asyncHandler(async (req, res) => {
     const updateUser = await User.findByIdAndUpdate(
       findUser.id,
       {
-        refreshToken: refreshToken,
+        refreshToken: refreshToken
       },
       { new: true }
     );
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      maxAge: 72 * 60 * 60 * 1000,
+      maxAge: 72 * 60 * 60 * 1000
     });
     return res.json({
       _id: findUser?._id,
       token: generateToken(findUser?._id),
       status: 'success',
-      user: findUser,
+      user: findUser
     });
   } else {
     throw new Error('invalid credetials');
@@ -66,13 +66,13 @@ const loginAdmin = asyncHandler(async (req, res) => {
     const updateuser = await User.findByIdAndUpdate(
       findAdmin.id,
       {
-        refreshToken: refreshToken,
+        refreshToken: refreshToken
       },
       { new: true }
     );
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      maxAge: 72 * 60 * 60 * 1000,
+      maxAge: 72 * 60 * 60 * 1000
     });
     res.json({
       _id: findAdmin?._id,
@@ -80,7 +80,7 @@ const loginAdmin = asyncHandler(async (req, res) => {
       lastname: findAdmin?.lastname,
       email: findAdmin?.email,
       mobile: findAdmin?.mobile,
-      token: generateToken(findAdmin?._id),
+      token: generateToken(findAdmin?._id)
     });
   } else {
     throw new Error('Invalid Credentials');
@@ -113,7 +113,7 @@ const logout = asyncHandler(async (req, res) => {
   if (!user) {
     res.clearCookie('refreshToken', {
       httpOnly: true,
-      secure: true,
+      secure: true
     });
     return res.sendStatus(204);
   }
@@ -125,7 +125,7 @@ const logout = asyncHandler(async (req, res) => {
 
   res.clearCookie('refreshToken', {
     httpOnly: true,
-    secure: true,
+    secure: true
   });
 
   return res.sendStatus(204);
@@ -142,13 +142,13 @@ const updateUser = asyncHandler(async (req, res) => {
         firstName: req.body.firstName,
         lastName: req.body.lastName,
         email: req.body.email,
-        mobile: req.body.mobile,
+        mobile: req.body.mobile
       },
       { new: true }
     );
     return res.json({
       status: 'success',
-      updatedUser: updatedUser,
+      updatedUser: updatedUser
     });
   } catch (error) {
     throw new Error(error);
@@ -165,10 +165,10 @@ const saveAddress = asyncHandler(async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       {
-        address: req.body.address,
+        address: req.body.address
       },
       {
-        new: true,
+        new: true
       }
     );
 
@@ -188,15 +188,11 @@ const saveAddress = asyncHandler(async (req, res) => {
 
 const getAllUser = asyncHandler(async (req, res) => {
   try {
-    const features = new APIFeatures(User.find(), req.query)
-      .filter()
-      .sort()
-      .limitFields()
-      .paginate();
-    const users = await features.query;
-    return res.json({
+    const users = await User.find();
+
+    return res.status(200).json({
       status: 'success',
-      allUsers: users,
+      allUsers: users
     });
   } catch (error) {
     throw new Error(error);
@@ -213,13 +209,13 @@ const getAUser = asyncHandler(async (req, res) => {
     if (!user) {
       return res.status(404).json({
         status: 'error',
-        message: 'User not found',
+        message: 'User not found'
       });
     }
 
     res.json({
       status: 'success',
-      data: user,
+      data: user
     });
   } catch (error) {
     throw new Error(error);
@@ -234,7 +230,7 @@ const deleteAUser = asyncHandler(async (req, res) => {
     const user = await User.findByIdAndDelete(id);
     res.json({
       status: 'success',
-      message: 'user successfully deleted',
+      message: 'user successfully deleted'
     });
   } catch (error) {
     throw new Error(error);
@@ -248,7 +244,7 @@ const blockUser = asyncHandler(async (req, res) => {
     const blockuser = await User.findByIdAndUpdate(
       id,
       {
-        isBlocked: true,
+        isBlocked: true
       },
       { new: true }
     );
@@ -262,7 +258,7 @@ const unBlockUser = asyncHandler(async (req, res) => {
     const unblockuser = await User.findByIdAndUpdate(
       req.params.id,
       {
-        isBlocked: false,
+        isBlocked: false
       },
       { new: true }
     );
@@ -309,7 +305,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
     await sendEmail({
       email: email,
       subject: 'Password Reset Request',
-      message: `You are receiving this email because you (or someone else) has requested the reset of the password for your account. Please click on the following link, or paste this into your browser to complete the process:\n\n${resetURL}\n\nIf you did not request this, please ignore this email and your password will remain unchanged.`,
+      message: `You are receiving this email because you (or someone else) has requested the reset of the password for your account. Please click on the following link, or paste this into your browser to complete the process:\n\n${resetURL}\n\nIf you did not request this, please ignore this email and your password will remain unchanged.`
     });
 
     // Respond with the token
@@ -322,10 +318,13 @@ const forgotPassword = asyncHandler(async (req, res) => {
 const resetPassword = asyncHandler(async (req, res) => {
   const { password } = req.body;
   const { token } = req.params;
-  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+  const hashedToken = crypto
+    .createHash('sha256')
+    .update(token)
+    .digest('hex');
   const user = await User.findOne({
     passwordResetToken: hashedToken,
-    passwordResetExpires: { $gt: Date.now() },
+    passwordResetExpires: { $gt: Date.now() }
   });
   if (!user) throw new Error('token expired, please try again later!');
   user.password = password;
@@ -363,7 +362,9 @@ const userCart = asyncHandler(async (req, res) => {
       object.product = cart[i].id; // Changed from cart[i]._id to cart[i].id
       object.count = cart[i].count;
       object.color = cart[i].color;
-      let getPrice = await Product.findById(cart[i].id).select('price').exec(); // Changed from cart[i]._id to cart[i].id
+      let getPrice = await Product.findById(cart[i].id)
+        .select('price')
+        .exec(); // Changed from cart[i]._id to cart[i].id
       if (getPrice) {
         object.price = getPrice.price;
       } else {
@@ -380,7 +381,7 @@ const userCart = asyncHandler(async (req, res) => {
     let newCart = await new Cart({
       products,
       cartTotal,
-      orderby: user?._id,
+      orderby: user?._id
     }).save();
     res.json(newCart);
   } catch (error) {
@@ -474,17 +475,17 @@ const createOrder = asyncHandler(async (req, res) => {
         amount: finalAmout,
         status: 'Cash on Delivery',
         created: Date.now(),
-        currency: 'usd',
+        currency: 'usd'
       },
       orderby: user._id,
-      orderStatus: 'Cash on Delivery',
+      orderStatus: 'Cash on Delivery'
     }).save();
-    let update = userCart.products.map((item) => {
+    let update = userCart.products.map(item => {
       return {
         updateOne: {
           filter: { _id: item.product._id },
-          update: { $inc: { quantity: -item.count, sold: +item.count } },
-        },
+          update: { $inc: { quantity: -item.count, sold: +item.count } }
+        }
       };
     });
     const updated = await Product.bulkWrite(update, {});
@@ -530,8 +531,8 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
       {
         orderStatus: status,
         paymentIntent: {
-          status: status,
-        },
+          status: status
+        }
       },
       { new: true }
     );
@@ -565,5 +566,5 @@ module.exports = {
   createOrder,
   getOrder,
   getAllOrders,
-  updateOrderStatus,
+  updateOrderStatus
 };

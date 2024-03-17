@@ -1,6 +1,7 @@
 const express = require('express');
 const { authMiddleware, isAdmin } = require('../middlewares/authMiddleware');
 const router = express.Router();
+const client = require('../redis');
 const {
   createUser,
   loginUser,
@@ -34,7 +35,40 @@ router.post('/forgotPassword', forgotPassword);
 router.put('/resetPassword/:token', resetPassword);
 router.post('/login', loginUser);
 router.post('/admin-login', loginAdmin);
-router.get('/all-users', getAllUser);
+// routes/userRoutes.js
+
+router.get('/all-users', async (req, res) => {
+  const cacheKey = 'all_users';
+
+  console.log('Before Redis get');
+
+  client.get(cacheKey, async (err, cachedData) => {
+    if (err) {
+      console.error('Redis error:', err);
+      return res.status(500).send('Internal Server Error');
+    }
+
+    console.log('After Redis get');
+
+    if (cachedData) {
+      return res.json({ users: JSON.parse(cachedData) });
+    }
+
+    try {
+      const users = await getAllUser();
+
+      console.log('Fetched users:', users);
+
+      client.setex(cacheKey, 60, JSON.stringify(users));
+
+      return res.json({ users });
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      return res.status(500).send('Internal Server Error');
+    }
+  });
+});
+
 router.get('/wishList', authMiddleware, getWishlist);
 router.post('/cart', authMiddleware, userCart);
 router.get('/cart', authMiddleware, getUserCart);
@@ -51,6 +85,6 @@ router.delete('/:id', deleteAUser);
 router.put('/:id', authMiddleware, updateUser);
 router.put('/block-user/:id', authMiddleware, isAdmin, blockUser);
 router.put('/unblock-user/:id', authMiddleware, isAdmin, unBlockUser);
-router.put('/update-order/:id',authMiddleware, isAdmin, updateOrderStatus);
+router.put('/update-order/:id', authMiddleware, isAdmin, updateOrderStatus);
 
 module.exports = router;
