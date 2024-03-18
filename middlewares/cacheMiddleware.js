@@ -2,8 +2,8 @@ const client = require('../redis');
 const util = require('util');
 client.get = util.promisify(client.get);
 
-const cacheMiddleware = async (req, res, next) => {
-  const cacheKey = 'all-users';
+const cacheMiddleware = cacheKey => async (req, res, next) => {
+  //   const cacheKey = 'all-users';
 
   console.log('Before Redis get');
 

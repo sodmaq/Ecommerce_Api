@@ -38,7 +38,7 @@ router.put('/resetPassword/:token', resetPassword);
 router.post('/login', loginUser);
 router.post('/admin-login', loginAdmin);
 // routes/userRoutes.js
-router.get('/all-users', cacheMiddleware, getAllUser);
+router.get('/all-users', cacheMiddleware('all-users'), getAllUser);
 router.get('/wishList', authMiddleware, getWishlist);
 router.post('/cart', authMiddleware, userCart);
 router.get('/cart', authMiddleware, getUserCart);
@@ -50,7 +50,15 @@ router.get('/get-AllOrders', authMiddleware, getAllOrders);
 router.put('/save-address', authMiddleware, saveAddress);
 router.get('/refresh', handleRefreshToken);
 router.get('/logout', logout);
-router.get('/:id', authMiddleware, isAdmin, getAUser);
+const cacheUserById = (req, res, next) => {
+  const cacheKey = `user:${req.params.id}`;
+  cacheMiddleware(cacheKey)(req, res, next);
+};
+
+// Route to get a specific user by ID, with caching
+router.get('/:id', cacheUserById, getAUser);
+
+// router.get('/:id', authMiddleware, isAdmin, getAUser);
 router.delete('/:id', deleteAUser);
 router.put('/:id', authMiddleware, updateUser);
 router.put('/block-user/:id', authMiddleware, isAdmin, blockUser);

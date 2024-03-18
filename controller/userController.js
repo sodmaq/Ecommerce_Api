@@ -216,6 +216,8 @@ const getAUser = asyncHandler(async (req, res) => {
         message: 'User not found'
       });
     }
+    const cacheKey = `user:${id}`;
+    await client.setex(cacheKey, 60, JSON.stringify(user));
 
     res.json({
       status: 'success',
